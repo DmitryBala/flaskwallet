@@ -88,8 +88,9 @@ Install the requirements inside your virtualenv. From the source tree run::
     $ pip install -r doc/requirements.txt
 
 This installs `bitcoin-python` from my own github repo, but you can also use the
-upstream master branch. Some features aren't supported upstream though (in 3.0
-at least). I am currently working on getting new code into the upstream release.
+upstream master branch. Some features aren't supported upstream though. The 0.3
+release won't do. I am currently working on getting new code into the upstream
+release. Any help is appreciated.
 
 You will also need PIL/Pillow to if you wish to generate QR codes for OTP
 authentication. I didn't include it as requirement because I prefer to use
