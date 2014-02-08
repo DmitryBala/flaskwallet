@@ -5,3 +5,4 @@ sqlalchemy
 -e git+https://github.com/nkuttler/bitcoin-python.git#egg=bitcoin-python-nkuttler
 qrcode
 pycrypto
+onetimepass
