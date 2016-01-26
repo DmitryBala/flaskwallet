@@ -191,10 +191,6 @@ Donations
 - Bitcoin ``1NG8BfDzequeiCDewn7v2AF4FcBKGxzKkH``
 - Namecoin ``NDMMAbbyFZKNNkjg67Ev1AmbPmgw8FsqyB``
 - Litecoin ``LZeWjWFFM2HxzM8zdGxagK8AT6E6gen7RG``
-- Primecoin ``ASLHExCmrtCBWraMSiLif5oo8HHmMiaHJV``
-- Novacoin ``4WktQAejCWcGKWRvoZSyveFq2rkbkH6VWo``
-- Feathercoin ``6uWPpv9zebZbFzPGmSEx4f6S55S9JS7ag4``
-- PPCoin ``PREaH4xoWUnbryevJmTuoZDUDEnoMW6GV9``
 
 Suggest more altcoins and I'll add them to this list, and see if my wallet can
 handle them.
