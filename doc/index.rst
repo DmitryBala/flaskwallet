@@ -151,8 +151,9 @@ you?
 
 I hope the rest is self-explanatory. One note though: there are two *Send
 coins* buttons, one on the wallet page and one on each account page. The former
-sends from the wallet, the latter from specific accounts. This means you can
-send coins that were received with addresses that belong to the account.
+sends from the wallet, the latter from specific accounts. This does *NOT* mean
+that you can send coins that were received with addresses that belong to the
+account, flaskwallet does not know about coincontrol or somesuch.
 
 Configuring your nodes
 ----------------------
