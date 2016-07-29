@@ -11,24 +11,29 @@ def real_format(account):
         account = ''
     return account
 
+
 def human_format(account):
     if account == '':
         account = '__DEFAULT_ACCOUNT__'
     return account
 
-def get_accounts(conn, getbalance=False, getchoice=False):
-    """
-    Returns the list of accounts for a wallet
-    """
-    if getbalance:
-        ret = conn.listaccounts(as_dict=True)
-    elif getchoice:
-        accounts = conn.listaccounts()
-        ret = []
-        for account in accounts:
-            account = human_format(account)
-            ret.append((urllib.quote_plus(str(account)), account))
-    return ret
+
+def get_accounts(proxy, getbalance=False, getchoice=False):
+    'Accounts should die'
+    return None
+    # """
+    # Returns the list of accounts for a wallet
+    # """
+    # if getbalance:
+    #     ret = conn.listaccounts(as_dict=True)
+    # elif getchoice:
+    #     accounts = conn.listaccounts()
+    #     ret = []
+    #     for account in accounts:
+    #         account = human_format(account)
+    #         ret.append((urllib.quote_plus(str(account)), account))
+    # return ret
+
 
 def strtofloat(value):
     """
@@ -37,6 +42,7 @@ def strtofloat(value):
     """
     return float(value)
 
+
 def get_cachetime():
     """
     TODO: configurable
@@ -44,6 +50,7 @@ def get_cachetime():
     cachetime_min = int(get_setting('cachetime_min', 5))
     cachetime_max = int(get_setting('cachetime_max', 15))
     return random.randint(cachetime_min, cachetime_max)
+
 
 def get_coin_choices():
     ret = []

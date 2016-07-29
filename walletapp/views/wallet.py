@@ -4,10 +4,6 @@ import urllib
 from ssl import SSLError
 from httplib import BadStatusLine
 
-from bitcoinrpc.exceptions import WalletUnlockNeeded
-from bitcoinrpc.exceptions import WalletPassphraseIncorrect
-from bitcoinrpc.exceptions import WalletAlreadyUnlocked
-from bitcoinrpc.exceptions import TransportException
 from flask import abort
 from flask import flash
 from flask import render_template
@@ -44,52 +40,56 @@ def get_wallet_info(wallet):
     Add some info to a wallet object
     """
     info = cache.get('walletinfo%d' % wallet.id)
-    if info == None:
-        try:
-            conn = connection.get_connection(wallet)
-            info = conn.getinfo()
-        except socket.error, v:  # pragma: no cover
-            if v[0] == errno.ECONNREFUSED:
-                info = False
-                flash(u"%s: Connection refused" % wallet.label, 'error')
-            elif v[0] == errno.ECONNRESET:
-                info = False
-                flash(u"%s: Connection reset" % wallet.label, 'error')
-            elif v[0] == errno.EHOSTUNREACH:
-                info = False
-                flash(u"%s: Host unreachable" % wallet.label, 'error')
-            elif v[0] == -2:  # WTF
-                info = False
-                flash(u"%s: Unknown error" % wallet.label, 'error')
-            #elif type(v) == socket.cachetime:
-            #    info = False
-            #    flash(u"%s: cachetime" % wallet.label, 'error')
-            else:
-                print v[0]
-                print dir(v)
-                print type(v)
-                flash(u"Unhandled exception!", 'error')
-        except ValueError:  # pragma: no cover
-            info = False
-            flash(u"%s: Auth error (?)" % wallet.label, 'error')
-        except BadStatusLine:  # pragma: no cover
-            # I think this was too much load on the node box
-            info = False
-            flash(u"%s: Bad status line." % wallet.label, 'error')
-        except SSLError:  # pragma: no cover
-            info = False
-            flash(u"%s: SSL error." % wallet.label, 'error')
-        except TransportException, e:  # pragma: no cover
-            if e.code == 403:
-                info = False
-                flash(u"%s: " % e.msg, 'error')
-            else:
-                flash(u"Unhandled transport exception!", 'error')
-        except Exception, e:  # pragma: no cover
-            print e
-            print dir(e)
-            print type(e)
-            flash(u"Unhandled exception!", 'error')
+    if info is None:
+        proxy = connection.get_proxy(wallet)
+        info = proxy.getinfo()
+        # print proxy.listunspent(0)
+        # print proxy
+        # try:
+        #     conn = connection.get_connection(wallet)
+        #     info = conn.getinfo()
+        # except socket.error, v:  # pragma: no cover
+        #     if v[0] == errno.ECONNREFUSED:
+        #         info = False
+        #         flash(u"%s: Connection refused" % wallet.label, 'error')
+        #     elif v[0] == errno.ECONNRESET:
+        #         info = False
+        #         flash(u"%s: Connection reset" % wallet.label, 'error')
+        #     elif v[0] == errno.EHOSTUNREACH:
+        #         info = False
+        #         flash(u"%s: Host unreachable" % wallet.label, 'error')
+        #     elif v[0] == -2:  # WTF
+        #         info = False
+        #         flash(u"%s: Unknown error" % wallet.label, 'error')
+        #     # elif type(v) == socket.cachetime:
+        #     #     info = False
+        #     #     flash(u"%s: cachetime" % wallet.label, 'error')
+        #     else:
+        #         print v[0]
+        #         print dir(v)
+        #         print type(v)
+        #         flash(u"Unhandled exception!", 'error')
+        # except ValueError:  # pragma: no cover
+        #     info = False
+        #     flash(u"%s: Auth error (?)" % wallet.label, 'error')
+        # except BadStatusLine:  # pragma: no cover
+        #     # I think this was too much load on the node box
+        #     info = False
+        #     flash(u"%s: Bad status line." % wallet.label, 'error')
+        # except SSLError:  # pragma: no cover
+        #     info = False
+        #     flash(u"%s: SSL error." % wallet.label, 'error')
+        # # except TransportException, e:  # pragma: no cover
+        # #     if e.code == 403:
+        # #         info = False
+        # #         flash(u"%s: " % e.msg, 'error')
+        # #     else:
+        # #         flash(u"Unhandled transport exception!", 'error')
+        # except Exception, e:  # pragma: no cover
+        #     print e
+        #     print dir(e)
+        #     print type(e)
+        #     flash(u"Unhandled exception!", 'error')
     cache.set('walletinfo%d' % wallet.id, info, timeout=get_cachetime())
     return info
 
@@ -112,6 +112,7 @@ class WalletListView(View):
 
 class WalletAddView(View):
     methods = ['GET', 'POST']
+
     def dispatch_request(self):
         form = WalletForm(request.form)
         if request.method == 'POST' and form.validate():
@@ -132,6 +133,7 @@ class WalletDetailBase(View):
 
 class WalletEditView(WalletDetailBase):
     methods = ['GET', 'POST']
+
     def dispatch_request(self, id):
         super(WalletEditView, self).dispatch_request(id)
         form = WalletForm(request.form, self.wallet)
@@ -151,15 +153,15 @@ class WalletConnectedBase(WalletDetailBase):
     """
     def dispatch_request(self, id):
         super(WalletConnectedBase, self).dispatch_request(id)
-        self.conn = connection.get_connection(self.wallet)
+        self.proxy = connection.get_proxy(self.wallet)
 
 
 class WalletDetailView(WalletConnectedBase):
     def dispatch_request(self, id):
         super(WalletDetailView, self).dispatch_request(id)
         data = {}
-        data['info'] = self.conn.getinfo()
-        data['accounts'] = get_accounts(self.conn, getbalance=True)
+        data['info'] = self.proxy.getinfo()
+        data['accounts'] = get_accounts(self.proxy, getbalance=True)
         data['global_send'] = int(get_setting('global_send', 1))
         data['forms'] = {}
         data['forms']['account'] = CreateAccountForm()
@@ -174,7 +176,7 @@ class WalletTransactionsView(WalletConnectedBase):
         super(WalletTransactionsView, self).dispatch_request(id)
         transactions = self.conn.listtransactions()
         return render_template("wallet/wallet/transactions.html",
-                                     wallet=self.wallet, transactions=transactions)
+                               wallet=self.wallet, transactions=transactions)
 
 
 class WalletReceivedView(WalletConnectedBase):
@@ -200,16 +202,17 @@ class WalletGroupingsView(WalletConnectedBase):
                                groupings=groupings)
 
 
-class WalletPeersView(WalletConnectedBase):
-    def dispatch_request(self, id):
-        super(WalletPeersView, self).dispatch_request(id)
-        peers = self.conn.getpeerinfo()
-        return render_template("wallet/wallet/peers.html", wallet=self.wallet,
-                               peers=peers)
+# class WalletPeersView(WalletConnectedBase):
+#     def dispatch_request(self, id):
+#         super(WalletPeersView, self).dispatch_request(id)
+#         peers = self.proxy.getpeerinfo()
+#         return render_template("wallet/wallet/peers.html", wallet=self.wallet,
+#                                peers=peers)
 
 
 class WalletMoveView(WalletConnectedBase):
-    methods=['GET', 'POST']
+    methods = ['GET', 'POST']
+
     def dispatch_request(self, id):
         super(WalletMoveView, self).dispatch_request(id)
         form = AccountMoveForm(request.form)
@@ -256,7 +259,8 @@ class WalletUnlockedBase(WalletConnectedBase):
 
 
 class WalletSendView(WalletUnlockedBase):
-    methods=['GET', 'POST']
+    methods = ['GET', 'POST']
+
     def dispatch_request(self, id):
         super(WalletSendView, self).dispatch_request(id)
         form = SendForm(request.form)
@@ -277,7 +281,8 @@ class WalletSendView(WalletUnlockedBase):
 
 
 class WalletDeleteView(WalletDetailBase):
-    methods=['POST']
+    methods = ['POST']
+
     def dispatch_request(self, id):
         super(WalletDeleteView, self).dispatch_request(id)
         session.delete(self.wallet)
@@ -287,7 +292,8 @@ class WalletDeleteView(WalletDetailBase):
 
 
 class WalletStopView(WalletConnectedBase):
-    methods=['POST']
+    methods = ['POST']
+
     def dispatch_request(self, id):
         super(WalletStopView, self).dispatch_request(id)
         self.conn.stop()
@@ -362,14 +368,14 @@ class WalletHelpView(WalletConnectedBase):
             'name_update',
         )
         # I think this is all mining stuff...
-        #getwork
-        #getmemorypool
-        #buildmerkletree
-        #deletetransaction
-        #getauxblock
-        #getblockbycount
-        #getblockbyhash
-        #getworkaux
+        # getwork
+        # getmemorypool
+        # buildmerkletree
+        # deletetransaction
+        # getauxblock
+        # getblockbycount
+        # getblockbyhash
+        # getworkaux
         resp = self.conn.help()
         data = {
             'help': [],
@@ -406,7 +412,7 @@ class WalletMiningInfoView(WalletConnectedBase):
         super(WalletMiningInfoView, self).dispatch_request(id)
         data = self.conn.getmininginfo()
         return render_template('wallet/wallet/mininginfo.html',
-                                                 wallet=self.wallet, data=data)
+                               wallet=self.wallet, data=data)
 
 
 class WalletEncryptView(WalletConnectedBase):
@@ -414,6 +420,7 @@ class WalletEncryptView(WalletConnectedBase):
     This can't be tested as encrypting the wallet stops the daemon.
     """
     methods = ['GET', 'POST']
+
     def dispatch_request(self, id):  # pragma: no cover
         super(WalletEncryptView, self).dispatch_request(id)
         form = EncryptForm(request.form)
@@ -435,6 +442,7 @@ class WalletUnlockView(WalletConnectedBase):
     TODO should have an OTP validator for the form...
     """
     methods = ['GET', 'POST']
+
     def dispatch_request(self, id):
         super(WalletUnlockView, self).dispatch_request(id)
         otpsetting = session.query(Setting).get('otpsecret')
@@ -449,10 +457,10 @@ class WalletUnlockView(WalletConnectedBase):
             flash("OTP valid", "success")
             try:
                 ret = self.conn.walletpassphrase(form.passphrase.data,
-                                                             form.timeout.data)
+                                                 form.timeout.data)
                 flash('Wallet unlocked', 'success')
                 return redirect(url_for('wallet.wallet_detail',
-                                                            id=self.wallet.id))
+                                        id=self.wallet.id))
             except WalletPassphraseIncorrect:
                 flash('Passphrase incorrect', 'error')
             except WalletAlreadyUnlocked:
@@ -465,6 +473,7 @@ class WalletUnlockView(WalletConnectedBase):
 
 class WalletLockView(WalletConnectedBase):
     methods = ['POST']
+
     def dispatch_request(self, id):
         super(WalletLockView, self).dispatch_request(id)
         self.conn.walletlock()
@@ -490,6 +499,7 @@ class BlockDetailView(WalletConnectedBase):
 
 class WalletSetTXFeeView(WalletConnectedBase):
     methods = ['POST']
+
     def dispatch_request(self, id):
         super(WalletSetTXFeeView, self).dispatch_request(id)
         form = SetTXFeeForm(request.form)

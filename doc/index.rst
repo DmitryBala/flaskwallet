@@ -65,9 +65,8 @@ Installation
 
 Get the source::
 
-    $ mkdir flaskwallet
+    $ git clone https://github.com/nkuttler/flaskwallet
     $ cd flaskwallet
-    $ git clone ***
 
 Create a virtualenv and activate it::
 
@@ -84,8 +83,7 @@ Dependencies
 
 Install the requirements inside your virtualenv. From the source tree run::
 
-    $ cd flaskwallet
-    $ pip install -r doc/requirements.txt
+    $ pip install -r requirements.txt
 
 This installs `bitcoin-python` from my own github repo, but you can also use the
 upstream master branch. Some features aren't supported upstream though. The 0.3

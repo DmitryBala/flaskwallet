@@ -29,12 +29,14 @@
                     <td>Testnet</td>
                     <td>{{ data.info.testnet }}</td>
                 </tr>
+                {#
                 <tr>
                     <td>Connections</td>
 
                     <td>{{ data.info.connections }}
                     (<a href="{{ url_for('wallet.wallet_peers', id=wallet.id) }}">View</a>)</td>
                 </tr>
+                #}
                 <tr>
                     <td>Errors</td>
                     <td>{{ data.info.errors }}</td>
@@ -146,7 +148,7 @@
             <a href="{{ url_for('wallet.wallet_addressgroupings', id=wallet.id) }}" class="info">Groupings</a>
             <a href="{{ url_for('wallet.wallet_help', id=wallet.id) }}" class="info">Help</a>
             <a href="{{ url_for('wallet.wallet_mininginfo', id=wallet.id) }}" class="info">Mining Info</a>
-            <a href="{{ url_for('wallet.wallet_peers', id=wallet.id) }}" class="info">Peers</a>
+            {#<a href="{{ url_for('wallet.wallet_peers', id=wallet.id) }}" class="info">Peers</a>#}
         </>
     </div>
 

@@ -1,11 +1,12 @@
-import bitcoinrpc
+from bitcoin import rpc
 
 
-def get_connection(node):
-    return bitcoinrpc.connect_to_remote(
-        node.rpcuser_decrypted,
-        node.rpcpass_decrypted,
-        host=node.rpchost,
-        port=node.rpcport,
-        use_https=node.rpchttps,
+def get_proxy(wallet):
+    # TODO flaskwallet should be able to build a service URL
+    return rpc.Proxy(
+        # node.rpcuser_decrypted,
+        # node.rpcpass_decrypted,
+        # service_url=wallet.rpchost,
+        # service_port=wallet.rpcport,
+        # use_https=wallet.rpchttps,
     )

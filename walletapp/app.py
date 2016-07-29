@@ -24,7 +24,7 @@ from walletapp.views.wallet import WalletDetailView
 from walletapp.views.wallet import WalletTransactionsView
 from walletapp.views.wallet import WalletReceivedView
 from walletapp.views.wallet import WalletGroupingsView
-from walletapp.views.wallet import WalletPeersView
+# from walletapp.views.wallet import WalletPeersView
 from walletapp.views.wallet import WalletMoveView
 from walletapp.views.wallet import WalletUnlockedBase
 from walletapp.views.wallet import WalletSendView
@@ -43,6 +43,7 @@ walletapp = Blueprint(
     url_prefix='/wallets',
     template_folder='templates/',
 )
+
 
 # Template filters
 @walletapp.app_template_filter()
@@ -63,6 +64,7 @@ def coinformat(amount, short=False):
             ret = ret.rstrip('.')
     return ret
 
+
 @walletapp.app_template_filter()
 def timeformat(timestamp, short=False):
     dt = datetime.fromtimestamp(timestamp)
@@ -72,15 +74,18 @@ def timeformat(timestamp, short=False):
         ret = dt.strftime('%Y/%m/%d %H:%M:%S')
     return ret
 
+
 @walletapp.app_template_filter()
 def timedelta(timestamp):
     dt = datetime.fromtimestamp(timestamp)
     delta = (dt - datetime.now()).total_seconds()
     return "%d seconds" % delta
 
+
 @walletapp.app_template_filter()
 def accountformat(account):
     return human_format(account)
+
 
 @walletapp.app_template_filter()
 def byteformat(num):
@@ -90,6 +95,7 @@ def byteformat(num):
         num = num / 1024.0
     return "%3.1f%s" % (num, 'TB')
 
+
 @walletapp.app_template_filter()
 def coinname(code):
     if code in app.config['COINS']:
@@ -97,6 +103,7 @@ def coinname(code):
     else:
         ret = 'Unknown'
     return ret
+
 
 # Wallet views
 walletapp.add_url_rule(
@@ -127,10 +134,10 @@ walletapp.add_url_rule(
     '/<int:id>/addressgroupings/',
     view_func=WalletGroupingsView.as_view('wallet_addressgroupings')
 )
-walletapp.add_url_rule(
-    '/<int:id>/peers/',
-    view_func=WalletPeersView.as_view('wallet_peers')
-)
+# walletapp.add_url_rule(
+#     '/<int:id>/peers/',
+#     view_func=WalletPeersView.as_view('wallet_peers')
+# )
 walletapp.add_url_rule(
     '/<int:id>/move/',
     view_func=WalletMoveView.as_view('wallet_move')

@@ -1,0 +1,8 @@
+flask
+wtforms
+Flask-WTF
+sqlalchemy
+bitcoin-python
+qrcode
+pycrypto
+onetimepass
